@@ -1,6 +1,5 @@
 #include "ros/ros.h"
-#include "gb_attention/Attention.h"
-
+#include "gb_attention/AttentionServer.h"
 
 int main(int argc, char **argv)
 {
@@ -8,13 +7,13 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "attention_node");
   ros::NodeHandle n;
 
-  Attention attention;
+  gb_attention::AttentionServer attention_server;
 
   ros::Rate rate(1);
 
   while(ros::ok())
   {
-    attention.update();
+    attention_server.update();
 
     ros::spinOnce();
     rate.sleep();

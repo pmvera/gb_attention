@@ -82,6 +82,10 @@ before_install:
   # Prepare rosdep to install dependencies.
   - sudo rosdep init
   - rosdep update
+  - sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+  # - sudo apt-key adv --keyserver hkp://pool.sks-keyservers.net --recv-key 0xB01FA116
+  - sudo apt-get update
+  - sudo apt-get install python-vcstool
 
 # Create a catkin workspace with the package under integration.
 install:
@@ -95,7 +99,10 @@ install:
   - source devel/setup.bash
   # Add the package under integration to the workspace using a symlink.
   - cd ~/catkin_ws/src
+  - git clone https://github.com/IntelligentRoboticsLabs/ROSPlan.git
+  - git clone https://github.com/IntelligentRoboticsLabs/BICA.git
   - ln -s $CI_SOURCE_PATH .
+
 
 # Install all dependencies, using wstool first and rosdep second.
 # wstool looks for a ROSINSTALL_FILE defined in the environment variables.
@@ -120,7 +127,7 @@ before_script:
 script:
   - source /opt/ros/$ROS_DISTRO/setup.bash
   - cd ~/catkin_ws
-  - catkin_make $( [ -f $CATKIN_OPTIONS ] && cat $CATKIN_OPTIONS )
+  - catkin_make -j1 $( [ -f $CATKIN_OPTIONS ] && cat $CATKIN_OPTIONS )
   # Run the tests, ensuring the path is set correctly.
   - source devel/setup.bash
-  - catkin_make run_tests && catkin_test_results && catkin_make roslint
+  - catkin_make roslint_darknet_ros_3d
