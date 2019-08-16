@@ -15,7 +15,7 @@ public:
 
 	void update();
 
-	virtual std::list<geometry_msgs::Point> get_attention_points(const bica_graph::StringEdge& edge) = 0;
+	virtual std::list<geometry_msgs::PointStamped> get_attention_points(const bica_graph::StringEdge& edge) = 0;
 protected:
 	ros::NodeHandle nh_;
 	bica_graph::GraphClient graph_;

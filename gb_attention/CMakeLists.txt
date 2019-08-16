@@ -13,6 +13,10 @@ find_package(catkin REQUIRED COMPONENTS
   bica_graph
   actionlib
   roslint
+  tf2
+  tf2_ros
+  tf2_geometry_msgs
+  trajectory_msgs
 )
 
 catkin_package(
@@ -27,18 +31,24 @@ include_directories(
 add_library(${PROJECT_NAME}
   src/gb_attention/AttentionClient.cpp
   src/gb_attention/AttentionServer.cpp
-  src/gb_attention/stimuli/TableAttentionClient.cpp
 )
-
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
-add_executable(attention_node
-  src/attention_node.cpp
-)
+add_executable(attention_server_node src/attention_server_node.cpp)
+target_link_libraries(attention_server_node ${catkin_LIBRARIES} ${PROJECT_NAME})
 
-target_link_libraries(attention_node ${catkin_LIBRARIES} ${PROJECT_NAME})
+add_executable(table_attention_client_node src/stimuli/table_attention_client_node.cpp)
+target_link_libraries(table_attention_client_node ${catkin_LIBRARIES} ${PROJECT_NAME})
 
-install(TARGETS attention_node ${PROJECT_NAME}
+add_executable(test_attention_node tests/test_attention_node.cpp)
+target_link_libraries(test_attention_node ${catkin_LIBRARIES} ${PROJECT_NAME})
+
+
+add_executable(head_test_simple_node src/head_test_simple_node.cpp)
+target_link_libraries(head_test_simple_node ${catkin_LIBRARIES} ${PROJECT_NAME})
+
+
+install(TARGETS attention_server_node ${PROJECT_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -54,8 +64,8 @@ set(ROSLINT_CPP_OPTS "--filter=-whitespace/indent,-whitespace/tab")
 roslint_cpp(
   src/gb_attention/AttentionClient.cpp include/gb_attention/AttentionClient.h
   src/gb_attention/AttentionServer.cpp include/gb_attention/AttentionServer.h
-  src/gb_attention/stimuli/TableAttentionClient.cpp include/gb_attention/stimuli/TableAttentionClient.h
-  src/attention_node.cpp
+  src/stimuli/table_attention_client_node.cpp
+  src/attention_server_node.cpp
 )
 
 if(CATKIN_ENABLE_TESTING)

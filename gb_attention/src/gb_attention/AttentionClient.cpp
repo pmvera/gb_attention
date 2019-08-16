@@ -35,12 +35,10 @@ AttentionClient::update()
 				graph_.exist_tf_edge(edge.get_source(), edge.get_target()))
 		{
 			gb_attention_msgs::AttentionPoints msg;
-			msg.header.stamp = ros::Time::now();
-			msg.header.frame_id = edge.get_source();
 			msg.class_id = class_;
 			msg.instance_id = edge.get_target();
 
-			std::list<geometry_msgs::Point> points = get_attention_points(edge);
+			std::list<geometry_msgs::PointStamped> points = get_attention_points(edge);
 			for (auto point : points)
 					msg.attention_points.push_back(point);
 
