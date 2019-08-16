@@ -59,12 +59,13 @@ install(DIRECTORY include/
   PATTERN ".svn" EXCLUDE
 )
 
-set(ROSLINT_CPP_OPTS "--filter=-whitespace/indent,-whitespace/tab")
+set(ROSLINT_CPP_OPTS "--filter=-whitespace/indent,-whitespace/tab,-runtime/references")
 
 roslint_cpp(
   src/gb_attention/AttentionClient.cpp include/gb_attention/AttentionClient.h
   src/gb_attention/AttentionServer.cpp include/gb_attention/AttentionServer.h
   src/stimuli/table_attention_client_node.cpp
+  src/head_test_simple_node.cpp
   src/attention_server_node.cpp
 )
 

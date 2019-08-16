@@ -1,8 +1,45 @@
+/*********************************************************************
+*  Software License Agreement (BSD License)
+*
+*   Copyright (c) 2019, Intelligent Robotics
+*   All rights reserved.
+*
+*   Redistribution and use in source and binary forms, with or without
+*   modification, are permitted provided that the following conditions
+*   are met:
+
+*    * Redistributions of source code must retain the above copyright
+*      notice, this list of conditions and the following disclaimer.
+*    * Redistributions in binary form must reproduce the above
+*      copyright notice, this list of conditions and the following
+*      disclaimer in the documentation and/or other materials provided
+*      with the distribution.
+*    * Neither the name of Intelligent Robotics nor the names of its
+*      contributors may be used to endorse or promote products derived
+*      from this software without specific prior written permission.
+
+*   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+*   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+*   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+*   FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+*   COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+*   INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+*   BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+*   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+*   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+*   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+*   POSSIBILITY OF SUCH DAMAGE.
+*********************************************************************/
+
+/* Author: Francisco Martín fmrico@gmail.com */
+
 #include <ros/ros.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 #include "gb_attention/AttentionServer.h"
 
+#include <string>
 
 #define TIME_IN_POINT	2.0
 
@@ -29,7 +66,7 @@ void
 AttentionServer::attention_point_callback(const gb_attention_msgs::AttentionPoints::ConstPtr& msg)
 {
 	for (auto msg_point : msg->attention_points)
-	{
+  {
 		AttentionPoint att_point;
 		att_point.class_id = msg->class_id;
 		att_point.instance_id = msg->instance_id;
@@ -41,14 +78,14 @@ AttentionServer::attention_point_callback(const gb_attention_msgs::AttentionPoin
 }
 
 bool
-AttentionServer::remove_stimuli_callback(gb_attention_msgs::RemoveAttentionStimuli::Request  &req,
-				 gb_attention_msgs::RemoveAttentionStimuli::Response &res)
+AttentionServer::remove_stimuli_callback(gb_attention_msgs::RemoveAttentionStimuli::Request &req,
+				 gb_attention_msgs::RemoveAttentionStimuli::Response& res)
 {
 	if (req.instance_id == "")
-	{
+  {
 		auto it = attention_points_.begin();
 		while (it != attention_points_.end())
-		{
+	  {
 			if (it->second.class_id == req.class_id)
 				it = attention_points_.erase(it);
 			else
@@ -143,23 +180,23 @@ AttentionServer::update()
 	ROS_INFO("=================================================");
 
 	if (attention_points_.empty())
-	{
+  {
 		ROS_WARN("Empty attention_points");
 		return;
 	}
 
 	if ((ros::Time::now() - last_attention_point_sent_).toSec() > TIME_IN_POINT)
-	{
+  {
 		it_attention_points_++;
 		if (it_attention_points_ == attention_points_.end())
 			it_attention_points_ = attention_points_.begin();
 
 		last_attention_point_sent_ = ros::Time::now();
-	
+
 		tf2::Stamped<tf2::Vector3> att_point = it_attention_points_->second.point;
 
 		trajectory_msgs::JointTrajectory joint_state;
-		init_join_state (joint_state);
+		init_join_state(joint_state);
 
 		tf2::Transform p2h1 = init_joint_tf("head_1_link", att_point.frame_id_, tfBuffer_);
 		tf2::Transform p2h2 = init_joint_tf("head_2_link", att_point.frame_id_, tfBuffer_);
