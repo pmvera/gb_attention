@@ -130,4 +130,4 @@ script:
   - catkin_make -j1 $( [ -f $CATKIN_OPTIONS ] && cat $CATKIN_OPTIONS )
   # Run the tests, ensuring the path is set correctly.
   - source devel/setup.bash
-  - catkin_make roslint_darknet_ros_3d
+  - catkin_make roslint_gb_attention
