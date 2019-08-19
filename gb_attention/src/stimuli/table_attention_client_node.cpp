@@ -55,15 +55,59 @@ public:
     std::list<geometry_msgs::PointStamped> ret;
     const tf2::Transform trans = graph_.get_tf_edge(edge.get_source(), edge.get_target()).get();
 
-    geometry_msgs::PointStamped p1;
+    geometry_msgs::PointStamped p_center;
 
-		p1.header.stamp = ros::Time::now();
-		p1.header.frame_id = edge.get_source();
-    p1.point.x = trans.getOrigin().x();
-    p1.point.y = trans.getOrigin().y();
-    p1.point.z = trans.getOrigin().z();
+		p_center.header.stamp = ros::Time::now();
+		p_center.header.frame_id = edge.get_source();
+    p_center.point.x = trans.getOrigin().x();
+    p_center.point.y = trans.getOrigin().y();
+    p_center.point.z = trans.getOrigin().z() + 0.2;
 
-    ret.push_back(p1);
+    ret.push_back(p_center);
+
+		geometry_msgs::PointStamped p = p_center;
+
+		//Points in the table
+		p.point.x = p_center.point.x + 1.0;
+		p.point.y = p_center.point.y + 0.5;
+		p.point.z = p_center.point.z;
+		ret.push_back(p);
+
+		p.point.x = p_center.point.x - 1.0;
+		p.point.y = p_center.point.y + 0.5;
+		p.point.z = p_center.point.z;
+		ret.push_back(p);
+
+		p.point.x = p_center.point.x + 1.0;
+		p.point.y = p_center.point.y - 0.5;
+		p.point.z = p_center.point.z;
+		ret.push_back(p);
+
+		p.point.x = p_center.point.x - 1.0;
+		p.point.y = p_center.point.y - 0.5;
+		p.point.z = p_center.point.z;
+		ret.push_back(p);
+
+		//Points for people
+		p.point.x = p_center.point.x + 1.0;
+		p.point.y = p_center.point.y + 0.8;
+		p.point.z = p_center.point.z + 0.3;
+		ret.push_back(p);
+
+		p.point.x = p_center.point.x - 1.0;
+		p.point.y = p_center.point.y + 0.8;
+		p.point.z = p_center.point.z + 0.3;
+		ret.push_back(p);
+
+		p.point.x = p_center.point.x + 1.0;
+		p.point.y = p_center.point.y - 0.8;
+		p.point.z = p_center.point.z + 0.3;
+		ret.push_back(p);
+
+		p.point.x = p_center.point.x - 1.0;
+		p.point.y = p_center.point.y - 0.8;
+		p.point.z = p_center.point.z + 0.3;
+		ret.push_back(p);
 
     return ret;
   }
