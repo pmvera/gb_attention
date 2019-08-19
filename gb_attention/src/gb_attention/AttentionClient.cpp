@@ -38,6 +38,7 @@
 
 #include <gb_attention_msgs/AttentionPoints.h>
 #include <gb_attention_msgs/RemoveAttentionStimuli.h>
+#include <visualization_msgs/MarkerArray.h>
 
 #include "gb_attention/AttentionClient.h"
 
@@ -51,13 +52,56 @@ namespace gb_attention
 
 AttentionClient::AttentionClient(const std::string& class_id)
 : nh_(),
-	class_(class_id)
+	class_(class_id),
+	marker_counter_id_(0)
 {
 	attention_points_pub_ = nh_.advertise<gb_attention_msgs::AttentionPoints>(
 		"/attention/attention_points", 100);
 
 	remove_instance_service_ = nh_.serviceClient<gb_attention_msgs::RemoveAttentionStimuli>(
 		"/attention/remove_instances");
+
+	markers_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("/attention_markers", 100);
+}
+
+void
+AttentionClient::publish_markers(const std::list<geometry_msgs::PointStamped>& points)
+{
+	if (markers_pub_.getNumSubscribers() == 0)
+		return;
+
+	visualization_msgs::MarkerArray msg;
+
+	for (auto point : points)
+  {
+		visualization_msgs::Marker att_marker;
+
+		att_marker.header.frame_id = point.header.frame_id;
+		att_marker.header.stamp = point.header.stamp;
+		att_marker.ns = ros::this_node::getName();
+		att_marker.id = marker_counter_id_++;
+		att_marker.type = visualization_msgs::Marker::SPHERE;
+		att_marker.action = visualization_msgs::Marker::ADD;
+		att_marker.pose.position.x = point.point.x;
+		att_marker.pose.position.y = point.point.y;
+		att_marker.pose.position.z = point.point.z;
+		att_marker.pose.orientation.x = 0.0;
+		att_marker.pose.orientation.y = 0.0;
+		att_marker.pose.orientation.z = 0.0;
+		att_marker.pose.orientation.w = 1.0;
+		att_marker.scale.x = 0.1;
+		att_marker.scale.y = 0.1;
+		att_marker.scale.z = 0.1;
+		att_marker.color.b = 0;
+		att_marker.color.g = 255.0;
+		att_marker.color.r = 0.0;
+		att_marker.color.a = 0.6;
+		att_marker.lifetime = ros::Duration(1.0);
+
+		msg.markers.push_back(att_marker);
+	}
+
+	markers_pub_.publish(msg);
 }
 
 void
@@ -79,6 +123,9 @@ AttentionClient::update()
 			msg.instance_id = edge.get_target();
 
 			std::list<geometry_msgs::PointStamped> points = get_attention_points(edge);
+
+			publish_markers(points);
+
 			for (auto point : points)
 					msg.attention_points.push_back(point);
 
