@@ -40,6 +40,7 @@
 #include "gb_attention/AttentionServer.h"
 
 #include <string>
+#include <list>
 
 #define TIME_IN_POINT	2.0
 
@@ -76,17 +77,17 @@ AttentionServer::attention_point_callback(const gb_attention_msgs::AttentionPoin
 		bool found = false;
 		std::list<AttentionPoint>::iterator it = attention_points_.begin();
 		while (it != attention_points_.end() && !found)
-		{
+	  {
 			found = it->point_id == point_id;
 			if (!found) it++;
 		}
 
 		if (found)
-		{
+	  {
 			tf2::fromMsg(msg_point, it->point);
 		}
 		else
-		{
+	  {
 			AttentionPoint att_point;
 			att_point.point_id = point_id;
 
@@ -118,8 +119,8 @@ AttentionServer::remove_points(const std::string& class_id, const std::string& i
 
 	auto it = attention_points_.begin();
 	while (it != attention_points_.end())
-	{
-		if (it->point_id.rfind(point_id, 0) == 0) // If it->point_id starts with point_id
+  {
+		if (it->point_id.rfind(point_id, 0) == 0)  // If it->point_id starts with point_id
 			it = attention_points_.erase(it);
 		else
 			++it;
@@ -149,77 +150,12 @@ AttentionServer::init_join_state()
   joint_state_.points[0].accelerations[1] = 0.0;
 }
 
-/*
-tf2::Transform
-AttentionServer::init_joint_tf(const std::string& link, const std::string& point_frame, tf2_ros::Buffer& tfBuffer)
-{
-  geometry_msgs::TransformStamped p2torso_msg;
-  tf2::Transform point2torso;
-  tf2::Transform torso2head1;
-  tf2::Transform head12head;
 
-  std::string error;
-  if (tfBuffer.canTransform(point_frame, "torso_lift_link", ros::Time(0), ros::Duration(0.2), &error))
-    p2torso_msg = tfBuffer.lookupTransform(point_frame, "torso_lift_link", ros::Time(0));
-  else
-  {
-    ROS_ERROR("Can't transform %s", error.c_str());
-  }
-  tf2::Stamped<tf2::Transform> aux;
-  tf2::convert(p2torso_msg, aux);
-
-  point2torso = aux;
-
-  torso2head1.setOrigin(tf2::Vector3(0.182, 0.0, 0.0));
-  torso2head1.setRotation(tf2::Quaternion(0.0, 0.0, 0.0, 1.0));
-  head12head.setOrigin(tf2::Vector3(0.005, 0.0, 0.098));
-  head12head.setRotation(tf2::Quaternion(0.0, 0.0, 0.0, 1.0));
-
-  if (link == "head_2_link")
-    return point2torso * torso2head1 * head12head;
-  else
-    return point2torso * torso2head1;
-}
-
-double
-AttentionServer::point_to_yaw(const tf2::Stamped<tf2::Vector3>& point, const tf2::Transform& tfh)
-{
-  tf2::Vector3 point_head = tfh.inverse() * point;
-
-  ROS_INFO("Point (%lf, %lf, %lf) en head 1: (%lf, %lf, %lf) [%lf]", point.x(), point.y(), point.z(),
-    point_head.x(), point_head.y(), point_head.z(), atan2(point_head.x(), point_head.y()));
-
-  return atan2(point_head.y(), point_head.x());
-}
-
-double
-AttentionServer::point_to_pitch(const tf2::Stamped<tf2::Vector3>& point, const tf2::Transform& tfh)
-{
-  tf2::Vector3 point_head = tfh.inverse() * point;
-
-  ROS_INFO("Point (%lf, %lf, %lf) en head 2: (%lf, %lf, %lf) [%lf]", point.x(), point.y(), point.z(),
-    point_head.x(), point_head.y(), point_head.z(), atan2(point_head.x(), point_head.x()));
-
-  return atan2(point_head.z(), point_head.x());
-}
-*/
-
-/*
-bool cmp(const AttentionPoint &a, const AttentionPoint &b)
-{
-	if (a.epoch < b.epoch)
-		return true;
-	else if (b.epoch < a.epoch)
-		return false;
-	else
-		return ((fabs(a.yaw) + fabs(a.pitch)) < (fabs(b.yaw) + fabs(b.pitch)));
-}
-*/
 void
 AttentionServer::update_points()
 {
 	for (auto& point : attention_points_)
-	{
+  {
 		geometry_msgs::TransformStamped p2torso_msg;
 		tf2::Transform point2torso;
 		tf2::Transform torso2head1;
@@ -266,7 +202,7 @@ AttentionServer::update()
 
 
 	if ((ros::Time::now() - last_attention_point_sent_).toSec() > TIME_IN_POINT)
-	{
+  {
 		attention_points_.begin()->epoch++;
 
 		update_points();
@@ -284,7 +220,7 @@ AttentionServer::update()
 
 		joint_state_.header.stamp = ros::Time::now();
 		joint_cmd_pub_.publish(joint_state_);
-	}
+  }
 }
 
 void
@@ -292,13 +228,11 @@ AttentionServer::print()
 {
 	ROS_INFO("===============================");
 	for (auto points : attention_points_)
-	{
+  {
 		ROS_INFO("[%d] [%s]", points.epoch, points.point_id.c_str());
 		ROS_INFO("\t[%s] (%lf, %lf, %lf) [%lf, %lf]", points.point.frame_id_.c_str(),
 			points.point.x(), points.point.y(), points.point.z(), points.yaw, points.pitch);
 	}
 }
-
-
 
 };  // namespace gb_attention

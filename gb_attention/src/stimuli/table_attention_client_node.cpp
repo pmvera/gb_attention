@@ -67,7 +67,7 @@ public:
 
 		geometry_msgs::PointStamped p = p_center;
 
-		//Points in the table
+		// Points in the table
 		p.point.x = p_center.point.x + 1.0;
 		p.point.y = p_center.point.y + 0.5;
 		p.point.z = p_center.point.z;
@@ -88,7 +88,7 @@ public:
 		p.point.z = p_center.point.z;
 		ret.push_back(p);
 
-		//Points for people
+		// Points for people
 		p.point.x = p_center.point.x + 1.0;
 		p.point.y = p_center.point.y + 0.8;
 		p.point.z = p_center.point.z + 0.3;

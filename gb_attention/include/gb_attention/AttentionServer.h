@@ -49,7 +49,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <trajectory_msgs/JointTrajectory.h>
 
-#include <map>
+#include <list>
 #include <string>
 
 namespace gb_attention
@@ -69,10 +69,10 @@ class AttentionPointCompare
 {
 public:
 	AttentionPointCompare(float ref_yaw, float ref_pitch)
-	: ref_yaw_(ref_yaw), ref_pitch_(ref_pitch){}
+  : ref_yaw_(ref_yaw), ref_pitch_(ref_pitch) {}
 
 	bool operator()(const AttentionPoint& a, const AttentionPoint& b)
-	{
+  {
 		if (a.epoch < b.epoch)
 			return true;
 		else if (b.epoch < a.epoch)
@@ -122,7 +122,6 @@ protected:
 
 	float current_yaw_;
 	float current_pitch_;
-
 };
 
 };  // namespace gb_attention
