@@ -101,6 +101,7 @@ protected:
 	tf2_ros::TransformListener tf_listener_;
 
 	ros::Publisher joint_cmd_pub_;
+	ros::Publisher markers_pub_;
 
 	ros::Subscriber attention_points_sub_;
 	ros::ServiceServer remove_instance_service_;
@@ -119,6 +120,7 @@ protected:
 	void init_join_state();
 	void update_points();
 	void print();
+	void publish_markers();
 
 	float current_yaw_;
 	float current_pitch_;

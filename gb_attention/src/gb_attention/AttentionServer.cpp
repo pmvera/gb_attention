@@ -36,6 +36,7 @@
 
 #include <ros/ros.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <visualization_msgs/MarkerArray.h>
 
 #include "gb_attention/AttentionServer.h"
 
@@ -60,6 +61,8 @@ AttentionServer::AttentionServer()
 
 	remove_instance_service_ = nh_.advertiseService("/attention/remove_instances",
 		&AttentionServer::remove_stimuli_callback, this);
+
+	markers_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("/attention_markers", 100);
 
 	last_attention_point_sent_ = ros::Time::now();
 
@@ -190,6 +193,68 @@ AttentionServer::update_points()
 }
 
 void
+AttentionServer::publish_markers()
+{
+	if (markers_pub_.getNumSubscribers() == 0)
+		return;
+
+	tf2::Stamped<tf2::Vector3> end_point = attention_points_.begin()->point;
+
+
+	visualization_msgs::MarkerArray msg;
+	visualization_msgs::Marker att_marker;
+
+	att_marker.header.frame_id = "xtion_link";
+	att_marker.header.stamp = ros::Time::now();
+	att_marker.ns = ros::this_node::getName();
+	att_marker.id = 0;
+	att_marker.type = visualization_msgs::Marker::ARROW;
+	att_marker.action = visualization_msgs::Marker::ADD;
+	att_marker.scale.x = 0.01;
+	att_marker.scale.y = 0.1;
+	att_marker.scale.z = 0.1;
+	att_marker.color.b = 0;
+	att_marker.color.g = 0;
+	att_marker.color.r = 255;
+	att_marker.color.a = 1.0;
+	att_marker.lifetime = ros::Duration(2.0);
+
+	geometry_msgs::Point start, end;
+	start.x = 0.0;
+	start.y = 0.0;
+	start.z = 0.0;
+
+
+	geometry_msgs::TransformStamped tf_msg;
+	std::string error;
+	if (tfBuffer_.canTransform(end_point.frame_id_, "xtion_link",
+		ros::Time(0), ros::Duration(0.1), &error))
+		tf_msg = tfBuffer_.lookupTransform(end_point.frame_id_, "xtion_link", ros::Time(0));
+	else
+  {
+		ROS_ERROR("Can't transform %s", error.c_str());
+	}
+	tf2::Transform tf;
+	tf2::Stamped<tf2::Transform> aux;
+	tf2::convert(tf_msg, aux);
+	tf = aux;
+
+	tf2::Vector3 point_end = tf.inverse() *  end_point;
+
+	end.x = point_end.x();
+	end.y = point_end.y();
+	end.z = point_end.z();
+
+	att_marker.points.push_back(start);
+	att_marker.points.push_back(end);
+
+
+	msg.markers.push_back(att_marker);
+
+	markers_pub_.publish(msg);
+}
+
+void
 AttentionServer::update()
 {
 	ROS_INFO("=================================================");
@@ -206,7 +271,7 @@ AttentionServer::update()
 		attention_points_.begin()->epoch++;
 
 		update_points();
-
+		publish_markers();
 		print();
 
 		current_yaw_ = attention_points_.begin()->yaw;

@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
 
 
   start = ros::Time::now();
-  while (ros::ok() && (ros::Time::now() - start).toSec() < 20.0 )
+  while (ros::ok() && (ros::Time::now() - start).toSec() < 30.0 )
   {
     tf2::Transform tf_r2t(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(3, 3, 0));
     graph_client.add_edge("leia", tf_r2t, "mesa_1");
