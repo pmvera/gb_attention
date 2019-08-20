@@ -259,7 +259,6 @@ AttentionServer::publish_markers()
 void
 AttentionServer::update()
 {
-
 	if (attention_points_.empty())
   {
 		ROS_WARN("Empty attention_points");
