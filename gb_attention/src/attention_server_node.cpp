@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 
   gb_attention::AttentionServer attention_server;
 
-  ros::Rate rate(1);
+  ros::Rate rate(10);
 
   while (ros::ok())
   {

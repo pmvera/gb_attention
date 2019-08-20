@@ -124,6 +124,8 @@ protected:
 
 	float current_yaw_;
 	float current_pitch_;
+
+	float waiting_secs_;
 };
 
 };  // namespace gb_attention

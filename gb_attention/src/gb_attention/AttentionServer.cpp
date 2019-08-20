@@ -43,7 +43,8 @@
 #include <string>
 #include <list>
 
-#define TIME_IN_POINT	2.0
+#define TIME_IN_POINT	1.0
+#define NECK_SPEED	0.2
 
 namespace gb_attention
 {
@@ -52,7 +53,8 @@ AttentionServer::AttentionServer()
 : nh_(),
 	tf_listener_(tfBuffer_),
 	current_yaw_(0.0),
-	current_pitch_(0.0)
+	current_pitch_(0.0),
+	waiting_secs_(TIME_IN_POINT)
 {
 	joint_cmd_pub_ = nh_.advertise<trajectory_msgs::JointTrajectory>("/head_controller/command", 100);
 
@@ -147,9 +149,9 @@ AttentionServer::init_join_state()
 
   joint_state_.points[0].positions[0] = 0.0;
   joint_state_.points[0].positions[1] = 0.0;
-  joint_state_.points[0].velocities[0] = 0.5;
+  joint_state_.points[0].velocities[0] = NECK_SPEED;
   joint_state_.points[0].velocities[1] = 0.0;
-  joint_state_.points[0].accelerations[0] = 0.5;
+  joint_state_.points[0].accelerations[0] = NECK_SPEED;
   joint_state_.points[0].accelerations[1] = 0.0;
 }
 
@@ -217,7 +219,7 @@ AttentionServer::publish_markers()
 	att_marker.color.g = 0;
 	att_marker.color.r = 255;
 	att_marker.color.a = 1.0;
-	att_marker.lifetime = ros::Duration(2.0);
+	att_marker.lifetime = ros::Duration(waiting_secs_);
 
 	geometry_msgs::Point start, end;
 	start.x = 0.0;
@@ -257,7 +259,6 @@ AttentionServer::publish_markers()
 void
 AttentionServer::update()
 {
-	ROS_INFO("=================================================");
 
 	if (attention_points_.empty())
   {
@@ -265,15 +266,23 @@ AttentionServer::update()
 		return;
 	}
 
-
-	if ((ros::Time::now() - last_attention_point_sent_).toSec() > TIME_IN_POINT)
+	if ((ros::Time::now() - last_attention_point_sent_).toSec() > waiting_secs_)
   {
+		ROS_INFO("=================================================");
+
 		attention_points_.begin()->epoch++;
 
 		update_points();
+
+		waiting_secs_ = (fabs(current_yaw_ - attention_points_.begin()->yaw)
+									+ fabs(current_pitch_ - attention_points_.begin()->pitch)) / (2.0 * NECK_SPEED)
+									+ TIME_IN_POINT;
+
 		publish_markers();
 		print();
 
+
+		ROS_INFO("Waiting time = %f", waiting_secs_);
 		current_yaw_ = attention_points_.begin()->yaw;
 		current_pitch_ = attention_points_.begin()->pitch;
 
@@ -285,6 +294,8 @@ AttentionServer::update()
 
 		joint_state_.header.stamp = ros::Time::now();
 		joint_cmd_pub_.publish(joint_state_);
+
+		last_attention_point_sent_ =  ros::Time::now();
   }
 }
 
