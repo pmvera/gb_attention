@@ -48,7 +48,7 @@
 
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <trajectory_msgs/JointTrajectory.h>
-
+#include <sensor_msgs/JointState.h>
 #include <list>
 #include <string>
 
@@ -104,14 +104,18 @@ protected:
 	ros::Publisher markers_pub_;
 
 	ros::Subscriber attention_points_sub_;
+	ros::Subscriber joint_state_sub_;
 	ros::ServiceServer remove_instance_service_;
 
 	std::list<AttentionPoint> attention_points_;
 
-	ros::Time last_attention_point_sent_;
-	trajectory_msgs::JointTrajectory joint_state_;
+	ros::Time time_in_pos_;
+
+	trajectory_msgs::JointTrajectory joint_cmd_;
+	sensor_msgs::JointState joint_state_;
 
 	void attention_point_callback(const gb_attention_msgs::AttentionPoints::ConstPtr& msg);
+	void joint_state_callback(const sensor_msgs::JointState::ConstPtr& msg);
 	bool remove_stimuli_callback(gb_attention_msgs::RemoveAttentionStimuli::Request &req,
 	         gb_attention_msgs::RemoveAttentionStimuli::Response& res);
 
@@ -124,8 +128,8 @@ protected:
 
 	float current_yaw_;
 	float current_pitch_;
-
-	float waiting_secs_;
+	float goal_yaw_;
+	float goal_pitch_;
 };
 
 };  // namespace gb_attention

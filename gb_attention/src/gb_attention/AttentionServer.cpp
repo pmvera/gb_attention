@@ -45,6 +45,8 @@
 
 #define TIME_IN_POINT	1.0
 #define NECK_SPEED	0.2
+#define FOVEA_YAW 0.17
+#define FOVEA_PITCH 0.17
 
 namespace gb_attention
 {
@@ -53,20 +55,22 @@ AttentionServer::AttentionServer()
 : nh_(),
 	tf_listener_(tfBuffer_),
 	current_yaw_(0.0),
-	current_pitch_(0.0),
-	waiting_secs_(TIME_IN_POINT)
+	current_pitch_(0.0)
 {
 	joint_cmd_pub_ = nh_.advertise<trajectory_msgs::JointTrajectory>("/head_controller/command", 100);
 
 	attention_points_sub_ = nh_.subscribe("/attention/attention_points", 100,
 		&AttentionServer::attention_point_callback, this);
 
+	joint_state_sub_ = nh_.subscribe("/joint_states", 1,
+		&AttentionServer::joint_state_callback, this);
+
 	remove_instance_service_ = nh_.advertiseService("/attention/remove_instances",
 		&AttentionServer::remove_stimuli_callback, this);
 
 	markers_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("/attention_markers", 100);
 
-	last_attention_point_sent_ = ros::Time::now();
+	time_in_pos_ = ros::Time::now();
 
 	init_join_state();
 }
@@ -118,6 +122,19 @@ AttentionServer::remove_stimuli_callback(gb_attention_msgs::RemoveAttentionStimu
 }
 
 void
+AttentionServer::joint_state_callback(const sensor_msgs::JointState::ConstPtr& msg)
+{
+	for (int i = 0; i < msg->name.size(); i++)
+	{
+		if (msg->name[i] == "head_1_joint")
+			current_yaw_ = msg->position[i];
+		if (msg->name[i] == "head_2_joint")
+			current_pitch_ = msg->position[i];
+	}
+}
+
+
+void
 AttentionServer::remove_points(const std::string& class_id, const std::string& instance_id)
 {
 	std::string point_id = class_id + "." + instance_id;
@@ -135,24 +152,24 @@ AttentionServer::remove_points(const std::string& class_id, const std::string& i
 void
 AttentionServer::init_join_state()
 {
-  joint_state_.header.stamp = ros::Time::now();
-  joint_state_.joint_names.resize(2);
-  joint_state_.points.resize(1);
+  joint_cmd_.header.stamp = ros::Time::now();
+  joint_cmd_.joint_names.resize(2);
+  joint_cmd_.points.resize(1);
 
-  joint_state_.joint_names[0] ="head_1_joint";
-  joint_state_.joint_names[1] ="head_2_joint";
+  joint_cmd_.joint_names[0] ="head_1_joint";
+  joint_cmd_.joint_names[1] ="head_2_joint";
 
-  joint_state_.points[0].positions.resize(2);
-  joint_state_.points[0].velocities.resize(2);
-  joint_state_.points[0].accelerations.resize(2);
-  joint_state_.points[0].time_from_start = ros::Duration(1.0);
+  joint_cmd_.points[0].positions.resize(2);
+  joint_cmd_.points[0].velocities.resize(2);
+  joint_cmd_.points[0].accelerations.resize(2);
+  joint_cmd_.points[0].time_from_start = ros::Duration(1.0);
 
-  joint_state_.points[0].positions[0] = 0.0;
-  joint_state_.points[0].positions[1] = 0.0;
-  joint_state_.points[0].velocities[0] = NECK_SPEED;
-  joint_state_.points[0].velocities[1] = 0.0;
-  joint_state_.points[0].accelerations[0] = NECK_SPEED;
-  joint_state_.points[0].accelerations[1] = 0.0;
+  joint_cmd_.points[0].positions[0] = 0.0;
+  joint_cmd_.points[0].positions[1] = 0.0;
+  joint_cmd_.points[0].velocities[0] = NECK_SPEED;
+  joint_cmd_.points[0].velocities[1] = 0.0;
+  joint_cmd_.points[0].accelerations[0] = NECK_SPEED;
+  joint_cmd_.points[0].accelerations[1] = 0.0;
 }
 
 
@@ -219,13 +236,12 @@ AttentionServer::publish_markers()
 	att_marker.color.g = 0;
 	att_marker.color.r = 255;
 	att_marker.color.a = 1.0;
-	att_marker.lifetime = ros::Duration(waiting_secs_);
+	att_marker.lifetime = ros::Duration(5.0);
 
 	geometry_msgs::Point start, end;
 	start.x = 0.0;
 	start.y = 0.0;
 	start.z = 0.0;
-
 
 	geometry_msgs::TransformStamped tf_msg;
 	std::string error;
@@ -265,37 +281,31 @@ AttentionServer::update()
 		return;
 	}
 
-	if ((ros::Time::now() - last_attention_point_sent_).toSec() > waiting_secs_)
-  {
-		ROS_INFO("=================================================");
+	ROS_INFO("[%lf, %lf]", fabs(current_yaw_ - attention_points_.begin()->yaw), fabs(current_pitch_ - attention_points_.begin()->pitch));
 
+	if ((ros::Time::now() - time_in_pos_).toSec() > TIME_IN_POINT)
+	{
 		attention_points_.begin()->epoch++;
 
 		update_points();
-
-		waiting_secs_ = (fabs(current_yaw_ - attention_points_.begin()->yaw)
-									+ fabs(current_pitch_ - attention_points_.begin()->pitch)) / (2.0 * NECK_SPEED)
-									+ TIME_IN_POINT;
-
 		publish_markers();
-		print();
 
+		goal_yaw_ = attention_points_.begin()->yaw;
+		goal_pitch_ = attention_points_.begin()->pitch;
 
-		ROS_INFO("Waiting time = %f", waiting_secs_);
-		current_yaw_ = attention_points_.begin()->yaw;
-		current_pitch_ = attention_points_.begin()->pitch;
+		joint_cmd_.points[0].positions[0] = goal_yaw_;
+		joint_cmd_.points[0].positions[1] = goal_pitch_;
 
-		joint_state_.points[0].positions[0] = current_yaw_;
-		joint_state_.points[0].positions[1] = current_pitch_;
+		ROS_INFO("Commanding pan %lf", goal_yaw_);
+		ROS_INFO("Commanding tilt %lf", goal_pitch_);
 
-		ROS_INFO("Commanding pan %lf", current_yaw_);
-		ROS_INFO("Commanding tilt %lf", current_pitch_);
+		joint_cmd_.header.stamp = ros::Time::now();
+		joint_cmd_pub_.publish(joint_cmd_);
+	}
 
-		joint_state_.header.stamp = ros::Time::now();
-		joint_cmd_pub_.publish(joint_state_);
-
-		last_attention_point_sent_ =  ros::Time::now();
-  }
+	if (fabs(current_yaw_ - goal_yaw_) > FOVEA_YAW ||
+			fabs(current_pitch_ - goal_pitch_) > FOVEA_PITCH)
+		time_in_pos_ = ros::Time::now();
 }
 
 void
