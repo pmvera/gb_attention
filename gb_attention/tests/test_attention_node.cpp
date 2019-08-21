@@ -71,36 +71,40 @@ int main(int argc, char* argv[])
 
 
   ROS_INFO("wanting see");
-  graph_client.add_edge("leia", "want_see", "mesa_1");
-  graph_client.add_edge("leia", "want_see", "mesa_2");
-  //graph_client.add_edge("leia", "want_see", "Paco");
 
-
-
-  start = ros::Time::now();
-  while (ros::ok() && (ros::Time::now() - start).toSec() < 30.0 )
+  while (ros::ok())
   {
-    tf2::Transform tf_r2t(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(3, 3, 0));
-    graph_client.add_edge("leia", tf_r2t, "mesa_1");
-    tf2::Transform tf_r2t2(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(2, -2, 0));
-    graph_client.add_edge("leia", tf_r2t2, "mesa_2");
-    tf2::Transform tf_r2p(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(1, 0, 1));
-    graph_client.add_edge("leia", tf_r2t, "Paco");
+    graph_client.add_edge("leia", "want_see", "mesa_1");
+    graph_client.add_edge("leia", "want_see", "mesa_2");
+    //graph_client.add_edge("leia", "want_see", "Paco");
 
 
-    ROS_INFO("spinnging 1");
-    ros::spinOnce();
-    rate.sleep();
-  }
+
+    start = ros::Time::now();
+    while (ros::ok() && (ros::Time::now() - start).toSec() < 30.0 )
+    {
+      tf2::Transform tf_r2t(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(3, 3, 0));
+      graph_client.add_edge("leia", tf_r2t, "mesa_1");
+      tf2::Transform tf_r2t2(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(2, -2, 0));
+      graph_client.add_edge("leia", tf_r2t2, "mesa_2");
+      tf2::Transform tf_r2p(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(1, 0, 1));
+      graph_client.add_edge("leia", tf_r2t, "Paco");
+
+
+      ROS_INFO("spinnging 1");
+      ros::spinOnce();
+      rate.sleep();
+    }
     ROS_INFO("removing want see 2");
-  graph_client.remove_edge("leia", "want_see", "mesa_2");
+    graph_client.remove_edge("leia", "want_see", "mesa_2");
 
-  start = ros::Time::now();
-  while (ros::ok() && (ros::Time::now() - start).toSec() < 15.0 )
-  {
-    ROS_INFO("spinnging 2");
-    ros::spinOnce();
-    rate.sleep();
+    start = ros::Time::now();
+    while (ros::ok() && (ros::Time::now() - start).toSec() < 15.0 )
+    {
+      ROS_INFO("spinnging 2");
+      ros::spinOnce();
+      rate.sleep();
+    }
   }
 
   return 0;
