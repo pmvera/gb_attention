@@ -124,8 +124,8 @@ AttentionServer::remove_stimuli_callback(gb_attention_msgs::RemoveAttentionStimu
 void
 AttentionServer::joint_state_callback(const sensor_msgs::JointState::ConstPtr& msg)
 {
-	for (int i = 0; i < msg->name.size(); i++)
-	{
+  for (int i = 0; i < msg->name.size(); i++)
+  {
 		if (msg->name[i] == "head_1_joint")
 			current_yaw_ = msg->position[i];
 		if (msg->name[i] == "head_2_joint")
@@ -281,10 +281,8 @@ AttentionServer::update()
 		return;
 	}
 
-	ROS_INFO("[%lf, %lf]", fabs(current_yaw_ - attention_points_.begin()->yaw), fabs(current_pitch_ - attention_points_.begin()->pitch));
-
 	if ((ros::Time::now() - time_in_pos_).toSec() > TIME_IN_POINT)
-	{
+  {
 		attention_points_.begin()->epoch++;
 
 		update_points();
@@ -295,9 +293,6 @@ AttentionServer::update()
 
 		joint_cmd_.points[0].positions[0] = goal_yaw_;
 		joint_cmd_.points[0].positions[1] = goal_pitch_;
-
-		ROS_INFO("Commanding pan %lf", goal_yaw_);
-		ROS_INFO("Commanding tilt %lf", goal_pitch_);
 
 		joint_cmd_.header.stamp = ros::Time::now();
 		joint_cmd_pub_.publish(joint_cmd_);
