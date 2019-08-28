@@ -31,6 +31,9 @@ include_directories(
 add_library(${PROJECT_NAME}
   src/gb_attention/AttentionClient.cpp
   src/gb_attention/AttentionServer.cpp
+  src/gb_attention/OptimizedAttentionServer.cpp
+  src/gb_attention/RoundRobinAttentionServer.cpp
+  src/gb_attention/SimpleAttentionServer.cpp
 )
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 

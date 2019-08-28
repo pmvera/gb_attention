@@ -34,28 +34,73 @@
 
 /* Author: Francisco Martín fmrico@gmail.com */
 
+#include <ros/ros.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <visualization_msgs/MarkerArray.h>
 
-#include "ros/ros.h"
-#include "gb_attention/OptimizedAttentionServer.h"
 #include "gb_attention/RoundRobinAttentionServer.h"
-#include "gb_attention/SimpleAttentionServer.h"
 
-int main(int argc, char **argv)
+#include <string>
+#include <list>
+
+
+namespace gb_attention
 {
-  ros::init(argc, argv, "attention_node");
-  ros::NodeHandle n;
 
-  gb_attention::OptimizedAttentionServer attention_server;
+RoundRobinAttentionServer::RoundRobinAttentionServer()
+{
+}
 
-  ros::Rate rate(10);
+void
+RoundRobinAttentionServer::update_points()
+{
+	attention_points_.sort(AttentionPointCompareRoundRobin());
+}
 
-  while (ros::ok())
+
+void
+RoundRobinAttentionServer::update()
+{
+	if (attention_points_.empty())
   {
-    attention_server.update();
+		if (head_mgr_disabled_)
+		{
+			enable_head_manager();
+			head_mgr_disabled_ = false;
+		}
+		ROS_WARN("Empty attention_points");
+		return;
+	}
+	else
+	{
+		if (!head_mgr_disabled_)
+		{
+			disable_head_manager();
+			head_mgr_disabled_ = true;
+		}
+	}
 
-    ros::spinOnce();
-    rate.sleep();
-  }
+	if ((ros::Time::now() - time_in_pos_).toSec() > (TIME_HEAD_TRAVEL + TIME_IN_POINT))
+  {
+		attention_points_.begin()->epoch++;
 
-   return 0;
- }
+		update_points();
+		publish_markers();
+
+		goal_yaw_ = attention_points_.begin()->yaw;
+		goal_pitch_ = attention_points_.begin()->pitch;
+
+		joint_cmd_.points[0].positions[0] = goal_yaw_;
+		joint_cmd_.points[0].positions[1] = goal_pitch_;
+
+		joint_cmd_.header.stamp = ros::Time::now();
+		joint_cmd_pub_.publish(joint_cmd_);
+	}
+
+	if (fabs(current_yaw_ - goal_yaw_) > FOVEA_YAW ||
+			fabs(current_pitch_ - goal_pitch_) > FOVEA_PITCH)
+		time_in_pos_ = ros::Time::now();
+}
+
+
+};  // namespace gb_attention

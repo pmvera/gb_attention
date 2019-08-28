@@ -61,52 +61,60 @@ public:
 		p_center.header.frame_id = edge.get_source();
     p_center.point.x = trans.getOrigin().x();
     p_center.point.y = trans.getOrigin().y();
-    p_center.point.z = trans.getOrigin().z() + 0.2;
-
-    ret.push_back(p_center);
+    p_center.point.z = trans.getOrigin().z();
 
 		geometry_msgs::PointStamped p = p_center;
 
 		// Points in the table
-		p.point.x = p_center.point.x + 1.0;
-		p.point.y = p_center.point.y + 0.5;
-		p.point.z = p_center.point.z;
+		p.point.x = p_center.point.x + 0.5;
+		p.point.y = p_center.point.y + 0.15;
+		p.point.z = p_center.point.z + 0.75;
 		ret.push_back(p);
 
-		p.point.x = p_center.point.x - 1.0;
-		p.point.y = p_center.point.y + 0.5;
-		p.point.z = p_center.point.z;
+		p.point.x = p_center.point.x + 0.5;
+		p.point.y = p_center.point.y - 0.15;
+		p.point.z = p_center.point.z + 0.75;
 		ret.push_back(p);
 
-		p.point.x = p_center.point.x + 1.0;
-		p.point.y = p_center.point.y - 0.5;
-		p.point.z = p_center.point.z;
+		p.point.x = p_center.point.x + 0.0;
+		p.point.y = p_center.point.y + 0.15;
+		p.point.z = p_center.point.z + 0.75;
 		ret.push_back(p);
 
-		p.point.x = p_center.point.x - 1.0;
-		p.point.y = p_center.point.y - 0.5;
-		p.point.z = p_center.point.z;
+		p.point.x = p_center.point.x - 0.0;
+		p.point.y = p_center.point.y - 0.15;
+		p.point.z = p_center.point.z + 0.75;
+		ret.push_back(p);
+
+		p.point.x = p_center.point.x - 0.5;
+		p.point.y = p_center.point.y + 0.15;
+		p.point.z = p_center.point.z + 0.75;
+		ret.push_back(p);
+
+		p.point.x = p_center.point.x - 0.5;
+		p.point.y = p_center.point.y - 0.15;
+		p.point.z = p_center.point.z + 0.75;
 		ret.push_back(p);
 
 		// Points for people
-		p.point.x = p_center.point.x + 1.0;
-		p.point.y = p_center.point.y + 0.8;
-		p.point.z = p_center.point.z + 0.3;
+		p.point.x = p_center.point.x + 0.4;
+		p.point.y = p_center.point.y + 0.6;
+		p.point.z = p_center.point.z + 1.00;
 		ret.push_back(p);
 
-		p.point.x = p_center.point.x - 1.0;
-		p.point.y = p_center.point.y + 0.8;
-		p.point.z = p_center.point.z + 0.3;
+		p.point.x = p_center.point.x + 0.4;
+		p.point.y = p_center.point.y - 0.6;
+		p.point.z = p_center.point.z + 1.00;
 		ret.push_back(p);
 
-		p.point.x = p_center.point.x + 1.0;
-		p.point.y = p_center.point.y - 0.8;
-		p.point.z = p_center.point.z + 0.3;
+		p.point.x = p_center.point.x - 0.4;
+		p.point.y = p_center.point.y + 0.6;
+		p.point.z = p_center.point.z + 1.00;
 		ret.push_back(p);
 
-		p.point.x = p_center.point.x - 1.0;
-		p.point.y = p_center.point.y - 0.8;
-		p.point.z = p_center.point.z + 0.3;
+		p.point.x = p_center.point.x - 0.4;
+		p.point.y = p_center.point.y - 0.6;
+		p.point.z = p_center.point.z + 1.00;
 		ret.push_back(p);
 
     return ret;

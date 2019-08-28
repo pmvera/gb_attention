@@ -43,10 +43,6 @@
 #include <string>
 #include <list>
 
-#define TIME_IN_POINT	1.0
-#define NECK_SPEED	0.2
-#define FOVEA_YAW 0.17
-#define FOVEA_PITCH 0.17
 
 namespace gb_attention
 {
@@ -55,7 +51,9 @@ AttentionServer::AttentionServer()
 : nh_(),
 	tf_listener_(tfBuffer_),
 	current_yaw_(0.0),
-	current_pitch_(0.0)
+	current_pitch_(0.0),
+	head_disable_ac_("/pal_head_manager/disable", true),
+	head_mgr_disabled_(false)
 {
 	joint_cmd_pub_ = nh_.advertise<trajectory_msgs::JointTrajectory>("/head_controller/command", 100);
 
@@ -110,6 +108,38 @@ AttentionServer::attention_point_callback(const gb_attention_msgs::AttentionPoin
 			attention_points_.push_back(att_point);
 		}
 	}
+
+	for (auto& point : attention_points_)
+  {
+		geometry_msgs::TransformStamped p2torso_msg;
+		tf2::Transform point2torso;
+		tf2::Transform torso2head1;
+		tf2::Transform head12head;
+
+		std::string error;
+		if (tfBuffer_.canTransform(point.point.frame_id_, "torso_lift_link",
+			ros::Time(0), ros::Duration(0.1), &error))
+			p2torso_msg = tfBuffer_.lookupTransform(point.point.frame_id_, "torso_lift_link", ros::Time(0));
+		else
+	  {
+			ROS_ERROR("Can't transform %s", error.c_str());
+		}
+		tf2::Stamped<tf2::Transform> aux;
+		tf2::convert(p2torso_msg, aux);
+
+		point2torso = aux;
+
+		torso2head1.setOrigin(tf2::Vector3(0.182, 0.0, 0.0));
+		torso2head1.setRotation(tf2::Quaternion(0.0, 0.0, 0.0, 1.0));
+		head12head.setOrigin(tf2::Vector3(0.005, 0.0, 0.098));
+		head12head.setRotation(tf2::Quaternion(0.0, 0.0, 0.0, 1.0));
+
+		tf2::Vector3 point_head_1 = (point2torso * torso2head1).inverse() * point.point;
+		tf2::Vector3 point_head_2 = (point2torso * torso2head1 * head12head).inverse() * point.point;
+
+		point.yaw = atan2(point_head_1.y(), point_head_1.x());
+		point.pitch = atan2(point_head_1.z(), point_head_1.x());
+	}
 }
 
 bool
@@ -162,7 +192,7 @@ AttentionServer::init_join_state()
   joint_cmd_.points[0].positions.resize(2);
   joint_cmd_.points[0].velocities.resize(2);
   joint_cmd_.points[0].accelerations.resize(2);
-  joint_cmd_.points[0].time_from_start = ros::Duration(1.0);
+  joint_cmd_.points[0].time_from_start = ros::Duration(TIME_HEAD_TRAVEL);
 
   joint_cmd_.points[0].positions[0] = 0.0;
   joint_cmd_.points[0].positions[1] = 0.0;
@@ -172,44 +202,6 @@ AttentionServer::init_join_state()
   joint_cmd_.points[0].accelerations[1] = 0.0;
 }
 
-
-void
-AttentionServer::update_points()
-{
-	for (auto& point : attention_points_)
-  {
-		geometry_msgs::TransformStamped p2torso_msg;
-		tf2::Transform point2torso;
-		tf2::Transform torso2head1;
-		tf2::Transform head12head;
-
-		std::string error;
-	  if (tfBuffer_.canTransform(point.point.frame_id_, "torso_lift_link",
-			ros::Time(0), ros::Duration(0.1), &error))
-	    p2torso_msg = tfBuffer_.lookupTransform(point.point.frame_id_, "torso_lift_link", ros::Time(0));
-	  else
-	  {
-	    ROS_ERROR("Can't transform %s", error.c_str());
-	  }
-	  tf2::Stamped<tf2::Transform> aux;
-	  tf2::convert(p2torso_msg, aux);
-
-		point2torso = aux;
-
-		torso2head1.setOrigin(tf2::Vector3(0.182, 0.0, 0.0));
-		torso2head1.setRotation(tf2::Quaternion(0.0, 0.0, 0.0, 1.0));
-		head12head.setOrigin(tf2::Vector3(0.005, 0.0, 0.098));
-		head12head.setRotation(tf2::Quaternion(0.0, 0.0, 0.0, 1.0));
-
-		tf2::Vector3 point_head_1 = (point2torso * torso2head1).inverse() * point.point;
-		tf2::Vector3 point_head_2 = (point2torso * torso2head1 * head12head).inverse() * point.point;
-
-		point.yaw = atan2(point_head_1.y(), point_head_1.x());
-		point.pitch = atan2(point_head_1.z(), point_head_1.x());
-	}
-
-	attention_points_.sort(AttentionPointCompare(current_yaw_, current_pitch_));
-}
 
 void
 AttentionServer::publish_markers()
@@ -273,34 +265,20 @@ AttentionServer::publish_markers()
 }
 
 void
-AttentionServer::update()
+AttentionServer::enable_head_manager()
 {
-	if (attention_points_.empty())
-  {
-		ROS_WARN("Empty attention_points");
-		return;
-	}
+	ROS_INFO("Enabling head manager");
+	head_disable_ac_.cancelGoal();
+}
 
-	if ((ros::Time::now() - time_in_pos_).toSec() > TIME_IN_POINT)
-  {
-		attention_points_.begin()->epoch++;
+void
+AttentionServer::disable_head_manager()
+{
+	ROS_INFO("Disabling head manager");
 
-		update_points();
-		publish_markers();
-
-		goal_yaw_ = attention_points_.begin()->yaw;
-		goal_pitch_ = attention_points_.begin()->pitch;
-
-		joint_cmd_.points[0].positions[0] = goal_yaw_;
-		joint_cmd_.points[0].positions[1] = goal_pitch_;
-
-		joint_cmd_.header.stamp = ros::Time::now();
-		joint_cmd_pub_.publish(joint_cmd_);
-	}
-
-	if (fabs(current_yaw_ - goal_yaw_) > FOVEA_YAW ||
-			fabs(current_pitch_ - goal_pitch_) > FOVEA_PITCH)
-		time_in_pos_ = ros::Time::now();
+	pal_common_msgs::DisableGoal goal;
+ 	goal.duration = 0.0;
+ 	head_disable_ac_.sendGoal(goal);
 }
 
 void

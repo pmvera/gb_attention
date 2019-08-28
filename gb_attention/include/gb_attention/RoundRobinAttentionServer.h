@@ -34,28 +34,42 @@
 
 /* Author: Francisco Martín fmrico@gmail.com */
 
+#ifndef GB_ATTENTION_ROUNDROBINATTENTIONSERVER_H
+#define GB_ATTENTION_ROUNDROBINATTENTIONSERVER_H
 
-#include "ros/ros.h"
-#include "gb_attention/OptimizedAttentionServer.h"
-#include "gb_attention/RoundRobinAttentionServer.h"
-#include "gb_attention/SimpleAttentionServer.h"
+#include <ros/ros.h>
 
-int main(int argc, char **argv)
+#include "gb_attention/AttentionServer.h"
+
+#include <list>
+#include <string>
+
+namespace gb_attention
 {
-  ros::init(argc, argv, "attention_node");
-  ros::NodeHandle n;
 
-  gb_attention::OptimizedAttentionServer attention_server;
+class AttentionPointCompareRoundRobin
+{
+public:
+	AttentionPointCompareRoundRobin() {}
 
-  ros::Rate rate(10);
-
-  while (ros::ok())
+	bool operator()(const AttentionPoint& a, const AttentionPoint& b)
   {
-    attention_server.update();
+		return (a.epoch < b.epoch);
+	}
+};
 
-    ros::spinOnce();
-    rate.sleep();
-  }
 
-   return 0;
- }
+class RoundRobinAttentionServer: public AttentionServer
+{
+public:
+	RoundRobinAttentionServer();
+
+	void update();
+
+protected:
+	void update_points();
+};
+
+};  // namespace gb_attention
+
+#endif  // GB_ATTENTION_ROUNDROBINATTENTIONSERVER_H

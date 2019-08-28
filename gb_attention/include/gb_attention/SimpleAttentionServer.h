@@ -34,28 +34,41 @@
 
 /* Author: Francisco Martín fmrico@gmail.com */
 
+#ifndef GB_ATTENTION_SIMPLEATTENTIONSERVER_H
+#define GB_ATTENTION_SIMPLEATTENTIONSERVER_H
 
-#include "ros/ros.h"
-#include "gb_attention/OptimizedAttentionServer.h"
-#include "gb_attention/RoundRobinAttentionServer.h"
-#include "gb_attention/SimpleAttentionServer.h"
+#include <ros/ros.h>
 
-int main(int argc, char **argv)
+#include "gb_attention/AttentionServer.h"
+
+#include <list>
+#include <string>
+
+namespace gb_attention
 {
-  ros::init(argc, argv, "attention_node");
-  ros::NodeHandle n;
 
-  gb_attention::OptimizedAttentionServer attention_server;
 
-  ros::Rate rate(10);
 
-  while (ros::ok())
-  {
-    attention_server.update();
+class SimpleAttentionServer: public AttentionServer
+{
+public:
+	SimpleAttentionServer();
 
-    ros::spinOnce();
-    rate.sleep();
-  }
+	void update();
 
-   return 0;
- }
+protected:
+	void update_limits();
+
+	float max_yaw_, min_yaw_;
+	float max_pitch_, min_pitch_;
+
+	float direction_yaw_, direction_pitch_;
+
+	ros::Time ts_sent_;
+	ros::Duration duration_;
+	bool inited_;
+};
+
+};  // namespace gb_attention
+
+#endif  // GB_ATTENTION_SIMPLEATTENTIONSERVER_H

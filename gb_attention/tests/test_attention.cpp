@@ -68,11 +68,11 @@ TEST(ClaseTest, methods)
   graph_client->add_edge("leia", "want_see", "mesa_2");
   //graph_client->add_edge("leia", "want_see", "Paco");
 
-  tf::Transform tf_r2t(tf::Quaternion(0, 0, 0, 1), tf::Vector3(3, 0, 0));
+  tf2::Transform tf_r2t(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(1.20, 0, 0)); 
   graph_client->add_edge("leia", tf_r2t, "mesa_1", true);
-  tf::Transform tf_r2t2(tf::Quaternion(0, 0, 0, 1), tf::Vector3(2, 0, 0));
+  tf2::Transform tf_r2t2(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(1.2, 1.6, 0));
   graph_client->add_edge("leia", tf_r2t2, "mesa_2", true);
-  tf::Transform tf_r2p(tf::Quaternion(0, 0, 0, 1), tf::Vector3(-1, 0, 0));
+  tf2::Transform tf_r2p(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(-1, 0, 0));
   graph_client->add_edge("leia", tf_r2t, "Paco", true);
 
   start = ros::Time::now();

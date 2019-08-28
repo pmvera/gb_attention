@@ -47,6 +47,9 @@
 #include <gb_attention_msgs/RemoveAttentionStimuli.h>
 
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <actionlib/client/simple_action_client.h>
+#include <pal_common_msgs/DisableGoal.h>
+#include <pal_common_msgs/DisableAction.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <sensor_msgs/JointState.h>
 #include <list>
@@ -55,9 +58,17 @@
 namespace gb_attention
 {
 
-class AttentionPoint
+
+#define TIME_HEAD_TRAVEL	1.0
+#define TIME_IN_POINT	0.5
+#define NECK_SPEED	0.2
+#define H_FOV (58.0 * M_PI / 180.0)
+#define V_FOV (45.0 * M_PI / 180.0)
+#define FOVEA_YAW (H_FOV / 2.0)
+#define FOVEA_PITCH (V_FOV / 2.0)
+
+struct AttentionPoint
 {
-public:
 	std::string point_id;
 	tf2::Stamped<tf2::Vector3> point;
 	float yaw;
@@ -65,33 +76,12 @@ public:
 	int epoch;
 };
 
-class AttentionPointCompare
-{
-public:
-	AttentionPointCompare(float ref_yaw, float ref_pitch)
-  : ref_yaw_(ref_yaw), ref_pitch_(ref_pitch) {}
-
-	bool operator()(const AttentionPoint& a, const AttentionPoint& b)
-  {
-		if (a.epoch < b.epoch)
-			return true;
-		else if (b.epoch < a.epoch)
-			return false;
-		else
-			return ((fabs(a.yaw - ref_yaw_) + fabs(a.pitch - ref_pitch_)) <
-							(fabs(b.yaw - ref_yaw_) + fabs(b.pitch - ref_pitch_)));
-	}
-
-	float ref_yaw_;
-	float ref_pitch_;
-};
-
 class AttentionServer
 {
 public:
 	AttentionServer();
 
-	void update();
+	virtual void update() = 0;
 
 protected:
 	ros::NodeHandle nh_;
@@ -106,6 +96,8 @@ protected:
 	ros::Subscriber attention_points_sub_;
 	ros::Subscriber joint_state_sub_;
 	ros::ServiceServer remove_instance_service_;
+
+	actionlib::SimpleActionClient<pal_common_msgs::DisableAction> head_disable_ac_;
 
 	std::list<AttentionPoint> attention_points_;
 
@@ -122,14 +114,18 @@ protected:
 	void remove_points(const std::string& class_id, const std::string& instance_id);
 
 	void init_join_state();
-	void update_points();
 	void print();
 	void publish_markers();
+
+	void enable_head_manager();
+	void disable_head_manager();
 
 	float current_yaw_;
 	float current_pitch_;
 	float goal_yaw_;
 	float goal_pitch_;
+
+	bool head_mgr_disabled_;
 };
 
 };  // namespace gb_attention

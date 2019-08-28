@@ -34,28 +34,54 @@
 
 /* Author: Francisco Martín fmrico@gmail.com */
 
+#ifndef GB_ATTENTION_OPTIMIZEDATTENTIONSERVER_H
+#define GB_ATTENTION_OPTIMIZEDATTENTIONSERVER_H
 
-#include "ros/ros.h"
-#include "gb_attention/OptimizedAttentionServer.h"
-#include "gb_attention/RoundRobinAttentionServer.h"
-#include "gb_attention/SimpleAttentionServer.h"
+#include <ros/ros.h>
 
-int main(int argc, char **argv)
+#include "gb_attention/AttentionServer.h"
+
+#include <list>
+#include <string>
+
+namespace gb_attention
 {
-  ros::init(argc, argv, "attention_node");
-  ros::NodeHandle n;
 
-  gb_attention::OptimizedAttentionServer attention_server;
+class AttentionPointCompareOptimized
+{
+public:
+	AttentionPointCompareOptimized(float ref_yaw, float ref_pitch)
+  : ref_yaw_(ref_yaw), ref_pitch_(ref_pitch) {}
 
-  ros::Rate rate(10);
-
-  while (ros::ok())
+	bool operator()(const AttentionPoint& a, const AttentionPoint& b)
   {
-    attention_server.update();
+		if (a.epoch < b.epoch)
+			return true;
+		else if (b.epoch < a.epoch)
+			return false;
+		else
+			return ((fabs(a.yaw - ref_yaw_) + fabs(a.pitch - ref_pitch_)) <
+							(fabs(b.yaw - ref_yaw_) + fabs(b.pitch - ref_pitch_)));
+	}
 
-    ros::spinOnce();
-    rate.sleep();
-  }
+	float ref_yaw_;
+	float ref_pitch_;
+};
 
-   return 0;
- }
+
+class OptimizedAttentionServer: public AttentionServer
+{
+public:
+	OptimizedAttentionServer();
+
+	void update();
+
+protected:
+	ros::Time ts_sent_;
+
+	void update_points();
+};
+
+};  // namespace gb_attention
+
+#endif  // GB_ATTENTION_OPTIMIZEDATTENTIONSERVER_H
