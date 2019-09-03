@@ -1,0 +1,4 @@
+<launch>
+	<node pkg="gb_attention" type="attention_server_node" output="screen" name="attention_server_node"/>
+	<node pkg="gb_attention" type="table_attention_client_node" output="screen" name="table_attention_client_node"/>
+</launch>
