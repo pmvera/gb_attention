@@ -53,7 +53,15 @@ public:
 	std::list<geometry_msgs::PointStamped> get_attention_points(const bica_graph::StringEdge& edge)
   {
     std::list<geometry_msgs::PointStamped> ret;
-    const tf2::Transform trans = graph_.get_tf_edge(edge.get_source(), edge.get_target()).get();
+
+		tf2::Transform trans;
+		try{
+			trans = graph_.get_tf(edge.get_source(), edge.get_target());
+		}
+		catch(const bica_graph::exceptions::TransformNotPossible& e)
+		{
+			return std::list<geometry_msgs::PointStamped>();
+		}
 
     geometry_msgs::PointStamped p_center;
 

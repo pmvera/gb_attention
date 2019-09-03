@@ -54,6 +54,8 @@ RoundRobinAttentionServer::RoundRobinAttentionServer()
 void
 RoundRobinAttentionServer::update_points()
 {
+	AttentionServer::update_points();
+
 	attention_points_.sort(AttentionPointCompareRoundRobin());
 }
 

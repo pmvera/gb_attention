@@ -108,9 +108,13 @@ AttentionServer::attention_point_callback(const gb_attention_msgs::AttentionPoin
 			attention_points_.push_back(att_point);
 		}
 	}
+}
 
+void
+AttentionServer::update_points()
+{
 	for (auto& point : attention_points_)
-  {
+	{
 		geometry_msgs::TransformStamped p2torso_msg;
 		tf2::Transform point2torso;
 		tf2::Transform torso2head1;
@@ -121,7 +125,7 @@ AttentionServer::attention_point_callback(const gb_attention_msgs::AttentionPoin
 			ros::Time(0), ros::Duration(0.1), &error))
 			p2torso_msg = tfBuffer_.lookupTransform(point.point.frame_id_, "torso_lift_link", ros::Time(0));
 		else
-	  {
+		{
 			ROS_ERROR("Can't transform %s", error.c_str());
 		}
 		tf2::Stamped<tf2::Transform> aux;
@@ -197,9 +201,9 @@ AttentionServer::init_join_state()
   joint_cmd_.points[0].positions[0] = 0.0;
   joint_cmd_.points[0].positions[1] = 0.0;
   joint_cmd_.points[0].velocities[0] = NECK_SPEED;
-  joint_cmd_.points[0].velocities[1] = 0.0;
+  joint_cmd_.points[0].velocities[1] = NECK_SPEED;
   joint_cmd_.points[0].accelerations[0] = NECK_SPEED;
-  joint_cmd_.points[0].accelerations[1] = 0.0;
+  joint_cmd_.points[0].accelerations[1] = NECK_SPEED;
 }
 
 

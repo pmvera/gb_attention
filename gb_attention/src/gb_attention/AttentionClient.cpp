@@ -40,6 +40,7 @@
 #include <gb_attention_msgs/RemoveAttentionStimuli.h>
 #include <visualization_msgs/MarkerArray.h>
 
+#include <bica_graph/exceptions.h>
 #include "gb_attention/AttentionClient.h"
 
 #include <string>
@@ -107,6 +108,7 @@ AttentionClient::publish_markers(const std::list<geometry_msgs::PointStamped>& p
 void
 AttentionClient::update()
 {
+	ROS_INFO("Client attention [%s]", class_.c_str());
 	std::vector<bica_graph::StringEdge> candidates = graph_.get_string_edges_by_data("want_see");
 	std::set<std::string> instances_aux = instances_sent_;
 
@@ -114,10 +116,23 @@ AttentionClient::update()
 
 	for (auto edge : candidates)
   {
+		ROS_INFO("%s ------> %s", graph_.get_node(edge.get_source()).get_type().c_str(),
+		graph_.get_node(edge.get_target()).get_type().c_str());
+
+		bool exist_tf = true;
+		try{
+			graph_.get_tf(edge.get_source(), edge.get_target());
+		}
+		catch(const bica_graph::exceptions::TransformNotPossible& e)
+		{
+			exist_tf = false;
+		}
+
 		if (graph_.get_node(edge.get_source()).get_type() == "robot" &&
 				graph_.get_node(edge.get_target()).get_type() == class_ &&
-				graph_.exist_tf_edge(edge.get_source(), edge.get_target()))
+				exist_tf)
 	  {
+			ROS_INFO("Encontrado");
 			gb_attention_msgs::AttentionPoints msg;
 			msg.class_id = class_;
 			msg.instance_id = edge.get_target();

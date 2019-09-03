@@ -85,6 +85,7 @@ SimpleAttentionServer::update()
 		inited_ = true;
 		ts_sent_ = ros::Time::now();
 
+		update_points();
 		update_limits();
 
 		duration_ = ros::Duration(fabs(max_yaw_ - min_yaw_) * FACTOR_RADS + 1.0);

@@ -59,9 +59,9 @@ namespace gb_attention
 {
 
 
-#define TIME_HEAD_TRAVEL	1.0
-#define TIME_IN_POINT	0.5
-#define NECK_SPEED	0.2
+#define TIME_HEAD_TRAVEL	2.0
+#define TIME_IN_POINT	1.0
+#define NECK_SPEED	0.1
 #define H_FOV (58.0 * M_PI / 180.0)
 #define V_FOV (45.0 * M_PI / 180.0)
 #define FOVEA_YAW (H_FOV / 2.0)
@@ -105,6 +105,8 @@ protected:
 
 	trajectory_msgs::JointTrajectory joint_cmd_;
 	sensor_msgs::JointState joint_state_;
+
+	virtual void update_points();
 
 	void attention_point_callback(const gb_attention_msgs::AttentionPoints::ConstPtr& msg);
 	void joint_state_callback(const sensor_msgs::JointState::ConstPtr& msg);

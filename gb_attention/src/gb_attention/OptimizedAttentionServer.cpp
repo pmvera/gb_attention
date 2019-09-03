@@ -56,6 +56,8 @@ OptimizedAttentionServer::OptimizedAttentionServer()
 void
 OptimizedAttentionServer::update_points()
 {
+	AttentionServer::update_points();
+
 	attention_points_.sort(AttentionPointCompareOptimized(current_yaw_, current_pitch_));
 }
 
@@ -82,6 +84,38 @@ OptimizedAttentionServer::update()
 		}
 	}
 
+	for (auto& point : attention_points_)
+  {
+		geometry_msgs::TransformStamped p2torso_msg;
+		tf2::Transform point2torso;
+		tf2::Transform torso2head1;
+		tf2::Transform head12head;
+
+		std::string error;
+		if (tfBuffer_.canTransform(point.point.frame_id_, "torso_lift_link",
+			ros::Time(0), ros::Duration(0.1), &error))
+			p2torso_msg = tfBuffer_.lookupTransform(point.point.frame_id_, "torso_lift_link", ros::Time(0));
+		else
+	  {
+			ROS_ERROR("Can't transform %s", error.c_str());
+		}
+		tf2::Stamped<tf2::Transform> aux;
+		tf2::convert(p2torso_msg, aux);
+
+		point2torso = aux;
+
+		torso2head1.setOrigin(tf2::Vector3(0.182, 0.0, 0.0));
+		torso2head1.setRotation(tf2::Quaternion(0.0, 0.0, 0.0, 1.0));
+		head12head.setOrigin(tf2::Vector3(0.005, 0.0, 0.098));
+		head12head.setRotation(tf2::Quaternion(0.0, 0.0, 0.0, 1.0));
+
+		tf2::Vector3 point_head_1 = (point2torso * torso2head1).inverse() * point.point;
+		tf2::Vector3 point_head_2 = (point2torso * torso2head1 * head12head).inverse() * point.point;
+
+		point.yaw = atan2(point_head_1.y(), point_head_1.x());
+		point.pitch = atan2(point_head_1.z(), point_head_1.x());
+	}
+
 	if (
 		(ros::Time::now() - ts_sent_).toSec() > 10.0 ||
 		(ros::Time::now() - time_in_pos_).toSec() > (TIME_HEAD_TRAVEL + TIME_IN_POINT))
@@ -91,7 +125,7 @@ OptimizedAttentionServer::update()
 			ROS_WARN("Timeout in attention point. Skipping");
 
 		attention_points_.begin()->epoch++;
-
+		print();
 		update_points();
 		publish_markers();
 
@@ -111,6 +145,7 @@ OptimizedAttentionServer::update()
 			fabs(current_yaw_ - goal_yaw_) > FOVEA_YAW ||
 			fabs(current_pitch_ - goal_pitch_) > FOVEA_PITCH)
 		time_in_pos_ = ros::Time::now();
+
 }
 
 
