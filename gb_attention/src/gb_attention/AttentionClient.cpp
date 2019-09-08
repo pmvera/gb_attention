@@ -84,8 +84,6 @@ std::vector<std::string> AttentionClient::tokenize(const std::string& text)
 void
 AttentionClient::init_attention_points()
 {
-	ROS_INFO("Initalizing the points of [%s]", class_.c_str());
-
 	std::vector<std::string> classes;
 	nh_.param("/attention_classes", classes, std::vector<std::string>());
 
@@ -100,24 +98,18 @@ AttentionClient::init_attention_points()
 
 	for (const auto instance : instances)
   {
-		ROS_INFO("Instance [%s]", instance.c_str());
 		std::list<geometry_msgs::PointStamped> instance_coords;
 
 		std::vector<std::string> coords;
 		nh_.param("/" + instance, coords, std::vector<std::string>());
 
-		int counter = 0;
 		for (const auto coord : coords)
     {
-			ROS_INFO("\t point %d [%s]", counter++, coord.c_str());
-
 			geometry_msgs::PointStamped p;
 			std::vector<std::string> coord_str = tokenize(coord);
 			p.point.x = std::stod(coord_str[0]);
 			p.point.y = std::stod(coord_str[1]);
 			p.point.z = std::stod(coord_str[2]);
-
-			ROS_INFO("\t\t (%lf, %lf, %lf)", p.point.x, p.point.y, p.point.z);
 
 			instance_coords.push_back(p);
 		}
