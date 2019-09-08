@@ -34,52 +34,40 @@
 
 /* Author: Francisco Martín fmrico@gmail.com */
 
-#ifndef GB_ATTENTION_ATTENTIONCLIENT_H
-#define GB_ATTENTION_ATTENTIONCLIENT_H
-
 #include <ros/ros.h>
 
-#include <bica_graph/graph_client.h>
+#include <gb_attention_msgs/AttentionPoints.h>
+#include <gb_attention_msgs/RemoveAttentionStimuli.h>
+
+#include "gb_attention/AttentionClient.h"
 
 #include <string>
-#include <list>
-#include <set>
-#include <map>
-#include <vector>
 
-namespace gb_attention
+int main(int argc, char **argv)
 {
+  ros::init(argc, argv, "attention_client_node");
+  ros::NodeHandle nh_("~");
 
-class AttentionClient
-{
-public:
-	explicit AttentionClient(const std::string& class_id);
+  std::string class_id = "";
+  nh_.param("class_id", class_id, class_id);
 
-	void update();
+  if (class_id == "")
+  {
+    ROS_ERROR("[%s] started without class id", ros::this_node::getName().c_str());
+    return 0;
+  }
 
-	virtual std::list<geometry_msgs::PointStamped> get_attention_points(const bica_graph::StringEdge& edge);
+  gb_attention::AttentionClient attention_client(class_id);
 
-protected:
-	void init_attention_points();
-	std::vector<std::string> tokenize(const std::string& text);
-	void publish_markers(const std::list<geometry_msgs::PointStamped>& points);
+  ros::Rate rate(1);
 
-	ros::NodeHandle nh_;
-	bica_graph::GraphClient graph_;
+  while (ros::ok())
+  {
+    attention_client.update();
 
-  std::string working_frame_;
-  ros::Publisher attention_points_pub_;
-	ros::Publisher markers_pub_;
-	ros::ServiceClient remove_instance_service_;
-	std::string class_;
+    ros::spinOnce();
+    rate.sleep();
+  }
 
-	std::set<std::string> instances_sent_;
-
-	std::map<std::string, std::list<geometry_msgs::PointStamped>> attention_points_;
-
-	int marker_counter_id_;
-};
-
-};  // namespace gb_attention
-
-#endif  // GB_ATTENTION_ATTENTIONCLIENT_H
+   return 0;
+ }

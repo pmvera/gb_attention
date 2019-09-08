@@ -63,6 +63,67 @@ AttentionClient::AttentionClient(const std::string& class_id)
 		"/attention/remove_instances");
 
 	markers_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("/attention_markers", 100);
+
+	init_attention_points();
+}
+
+std::vector<std::string> AttentionClient::tokenize(const std::string& text)
+{
+  std::vector<std::string> ret;
+  size_t start = 0, end = 0;
+
+  while (end != std::string::npos)
+  {
+    end = text.find(",", start);
+    ret.push_back(text.substr(start, (end == std::string::npos) ? std::string::npos : end - start));
+    start = ((end > (std::string::npos - 1)) ? std::string::npos : end + 1);
+  }
+  return ret;
+}
+
+void
+AttentionClient::init_attention_points()
+{
+	ROS_INFO("Initalizing the points of [%s]", class_.c_str());
+
+	std::vector<std::string> classes;
+	nh_.param("/attention_classes", classes, std::vector<std::string>());
+
+	if (std::find(classes.begin(), classes.end(), class_) == classes.end())
+  {
+		ROS_ERROR("There is not point defined for class %s", class_.c_str());
+		return;
+  }
+
+	std::vector<std::string> instances;
+	nh_.param("/" + class_ + "_instances", instances, std::vector<std::string>());
+
+	for (const auto instance : instances)
+  {
+		ROS_INFO("Instance [%s]", instance.c_str());
+		std::list<geometry_msgs::PointStamped> instance_coords;
+
+		std::vector<std::string> coords;
+		nh_.param("/" + instance, coords, std::vector<std::string>());
+
+		int counter = 0;
+		for (const auto coord : coords)
+    {
+			ROS_INFO("\t point %d [%s]", counter++, coord.c_str());
+
+			geometry_msgs::PointStamped p;
+			std::vector<std::string> coord_str = tokenize(coord);
+			p.point.x = std::stod(coord_str[0]);
+			p.point.y = std::stod(coord_str[1]);
+			p.point.z = std::stod(coord_str[2]);
+
+			ROS_INFO("\t\t (%lf, %lf, %lf)", p.point.x, p.point.y, p.point.z);
+
+			instance_coords.push_back(p);
+		}
+
+		attention_points_[instance] = instance_coords;
+	}
 }
 
 void
@@ -108,7 +169,6 @@ AttentionClient::publish_markers(const std::list<geometry_msgs::PointStamped>& p
 void
 AttentionClient::update()
 {
-	ROS_INFO("Client attention [%s]", class_.c_str());
 	std::vector<bica_graph::StringEdge> candidates = graph_.get_string_edges_by_data("want_see");
 	std::set<std::string> instances_aux = instances_sent_;
 
@@ -116,15 +176,13 @@ AttentionClient::update()
 
 	for (auto edge : candidates)
   {
-		ROS_INFO("%s ------> %s", graph_.get_node(edge.get_source()).get_type().c_str(),
-		graph_.get_node(edge.get_target()).get_type().c_str());
-
 		bool exist_tf = true;
-		try{
+		try
+    {
 			graph_.get_tf(edge.get_source(), edge.get_target());
 		}
 		catch(const bica_graph::exceptions::TransformNotPossible& e)
-		{
+    {
 			exist_tf = false;
 		}
 
@@ -132,7 +190,6 @@ AttentionClient::update()
 				graph_.get_node(edge.get_target()).get_type() == class_ &&
 				exist_tf)
 	  {
-			ROS_INFO("Encontrado");
 			gb_attention_msgs::AttentionPoints msg;
 			msg.class_id = class_;
 			msg.instance_id = edge.get_target();
@@ -166,6 +223,39 @@ AttentionClient::update()
 		if (it != instances_sent_.end())
 			instances_sent_.erase(it);
 	}
+}
+
+std::list<geometry_msgs::PointStamped>
+AttentionClient::get_attention_points(const bica_graph::StringEdge& edge)
+{
+	tf2::Transform trans;
+	try
+  {
+		trans = graph_.get_tf(edge.get_source(), edge.get_target());
+	}
+	catch(const bica_graph::exceptions::TransformNotPossible& e)
+  {
+		return std::list<geometry_msgs::PointStamped>();
+	}
+
+	std::list<geometry_msgs::PointStamped> ret;
+
+	if (attention_points_.find (edge.get_target()) != attention_points_.end())
+  {
+		ret = attention_points_[edge.get_target()];
+	}
+	else
+  {
+		ret = attention_points_[class_ + "_default"];
+	}
+
+	for (auto& point : ret)
+  {
+		point.header.stamp = ros::Time::now();
+		point.header.frame_id = edge.get_target();
+	}
+
+	return ret;
 }
 
 };  // namespace gb_attention

@@ -114,7 +114,7 @@ void
 AttentionServer::update_points()
 {
 	for (auto& point : attention_points_)
-	{
+  {
 		geometry_msgs::TransformStamped p2torso_msg;
 		tf2::Transform point2torso;
 		tf2::Transform torso2head1;
@@ -125,7 +125,7 @@ AttentionServer::update_points()
 			ros::Time(0), ros::Duration(0.1), &error))
 			p2torso_msg = tfBuffer_.lookupTransform(point.point.frame_id_, "torso_lift_link", ros::Time(0));
 		else
-		{
+    {
 			ROS_ERROR("Can't transform %s", error.c_str());
 		}
 		tf2::Stamped<tf2::Transform> aux;

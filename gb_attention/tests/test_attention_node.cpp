@@ -52,7 +52,8 @@ int main(int argc, char* argv[])
   graph_client.add_node("leia", "robot");
   graph_client.add_node("mesa_1", "table");
   graph_client.add_node("mesa_2", "table");
-  graph_client.add_node("Paco", "person");
+  graph_client.add_node("mesa_3", "table");
+  graph_client.add_node("waiting_zone", "zone");
 
   ROS_INFO("done");
 
@@ -72,10 +73,10 @@ int main(int argc, char* argv[])
   graph_client.add_edge("leia", tf_r2t, "mesa_1", true);
   tf2::Transform tf_r2t2(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(1.4, 1.6, 0));
   graph_client.add_edge("leia", tf_r2t2, "mesa_2", true);
-  tf2::Transform tf_r2p(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(1, 0, 1));
-  graph_client.add_edge("leia", tf_r2t, "Paco");
-
-
+  tf2::Transform tf_r2t3(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(1.4, 3.2, 0));
+  graph_client.add_edge("leia", tf_r2t3, "mesa_3", true);
+  tf2::Transform tf_r2p(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(1.4, -1.6, 0));
+  graph_client.add_edge("leia", tf_r2t, "waiting_zone", true);
 
 
 
@@ -84,6 +85,8 @@ int main(int argc, char* argv[])
 
     graph_client.add_edge("leia", "want_see", "mesa_1");
     graph_client.add_edge("leia", "want_see", "mesa_2");
+    graph_client.add_edge("leia", "want_see", "mesa_3");
+    graph_client.add_edge("leia", "want_see", "waiting_zone");
 
     start = ros::Time::now();
     while (ros::ok() && (ros::Time::now() - start).toSec() < 30.0 )

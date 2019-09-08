@@ -40,8 +40,8 @@ target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 add_executable(attention_server_node src/attention_server_node.cpp)
 target_link_libraries(attention_server_node ${catkin_LIBRARIES} ${PROJECT_NAME})
 
-add_executable(table_attention_client_node src/stimuli/table_attention_client_node.cpp)
-target_link_libraries(table_attention_client_node ${catkin_LIBRARIES} ${PROJECT_NAME})
+add_executable(attention_client_node src/attention_client_node.cpp)
+target_link_libraries(attention_client_node ${catkin_LIBRARIES} ${PROJECT_NAME})
 
 add_executable(test_attention_node tests/test_attention_node.cpp)
 target_link_libraries(test_attention_node ${catkin_LIBRARIES} ${PROJECT_NAME})
@@ -67,7 +67,7 @@ set(ROSLINT_CPP_OPTS "--filter=-whitespace/indent,-whitespace/tab,-runtime/refer
 roslint_cpp(
   src/gb_attention/AttentionClient.cpp include/gb_attention/AttentionClient.h
   src/gb_attention/AttentionServer.cpp include/gb_attention/AttentionServer.h
-  src/stimuli/table_attention_client_node.cpp
+  src/attention_client_node.cpp
   src/head_test_simple_node.cpp
   src/attention_server_node.cpp
 )
