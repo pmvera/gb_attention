@@ -50,9 +50,9 @@ int main(int argc, char* argv[])
 
   ROS_INFO("Creating nodes...");
   graph_client.add_node("leia", "robot");
-  graph_client.add_node("mesa_1", "table");
-  graph_client.add_node("mesa_2", "table");
-  graph_client.add_node("mesa_3", "table");
+  graph_client.add_node("table_1", "table");
+  graph_client.add_node("table_2", "table");
+  graph_client.add_node("table_3", "table");
   graph_client.add_node("waiting_zone", "zone");
 
   ROS_INFO("done");
@@ -67,14 +67,14 @@ int main(int argc, char* argv[])
 
   graph_client.set_tf_identity("base_footprint", "leia");
 
-  graph_client.add_edge("leia", "want_see", "mesa_1");
-  graph_client.add_edge("leia", "want_see", "mesa_2");
+  graph_client.add_edge("leia", "want_see", "table_1");
+  graph_client.add_edge("leia", "want_see", "table_2");
   tf2::Transform tf_r2t(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(1.40, 0, 0));
-  graph_client.add_edge("leia", tf_r2t, "mesa_1", true);
+  graph_client.add_edge("leia", tf_r2t, "table_1", true);
   tf2::Transform tf_r2t2(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(1.4, 1.6, 0));
-  graph_client.add_edge("leia", tf_r2t2, "mesa_2", true);
+  graph_client.add_edge("leia", tf_r2t2, "table_2", true);
   tf2::Transform tf_r2t3(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(1.4, 3.2, 0));
-  graph_client.add_edge("leia", tf_r2t3, "mesa_3", true);
+  graph_client.add_edge("leia", tf_r2t3, "table_3", true);
   tf2::Transform tf_r2p(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(1.4, -1.6, 0));
   graph_client.add_edge("leia", tf_r2t, "waiting_zone", true);
 
@@ -83,9 +83,9 @@ int main(int argc, char* argv[])
   while (ros::ok())
   {
 
-    graph_client.add_edge("leia", "want_see", "mesa_1");
-    graph_client.add_edge("leia", "want_see", "mesa_2");
-    graph_client.add_edge("leia", "want_see", "mesa_3");
+    graph_client.add_edge("leia", "want_see", "table_1");
+    graph_client.add_edge("leia", "want_see", "table_2");
+    graph_client.add_edge("leia", "want_see", "table_3");
     graph_client.add_edge("leia", "want_see", "waiting_zone");
 
     start = ros::Time::now();
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
     }
 
     ROS_INFO("removing want see 2");
-    graph_client.remove_edge("leia", "want_see", "mesa_2");
+    graph_client.remove_edge("leia", "want_see", "table_2");
 
     start = ros::Time::now();
     while (ros::ok() && (ros::Time::now() - start).toSec() < 15.0 )
