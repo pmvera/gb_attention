@@ -1,11 +1,16 @@
 <launch>
 	<node pkg="gb_attention" type="attention_server_node" name="attention_server_node"/>
-	
+
 	<node pkg="gb_attention" type="attention_client_node" name="table_attention_client_node" output="screen">
 		<param name="class_id" value="table" />
 	</node>
-
 	<node pkg="gb_attention" type="attention_client_node" name="zone_attention_client_node" output="screen">
 		<param name="class_id" value="zone" />
+	</node>
+  <node pkg="gb_attention" type="attention_client_node" name="people_attention_client_node" output="screen">
+		<param name="class_id" value="person" />
+	</node>
+  <node pkg="gb_attention" type="attention_client_node" name="robot_attention_client_node" output="screen">
+		<param name="class_id" value="robot" />
 	</node>
 </launch>
