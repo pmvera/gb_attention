@@ -82,7 +82,7 @@ RoundRobinAttentionServer::update()
 		}
 	}
 
-	if ((ros::Time::now() - time_in_pos_).toSec() > (TIME_HEAD_TRAVEL + TIME_IN_POINT))
+	if ((ros::Time::now() - time_in_pos_).toSec() > (time_head_travel_ + time_in_point_))
   {
 		attention_points_.begin()->epoch++;
 

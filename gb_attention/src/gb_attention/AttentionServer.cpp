@@ -53,7 +53,9 @@ AttentionServer::AttentionServer()
 	current_yaw_(0.0),
 	current_pitch_(0.0),
 	head_disable_ac_("/pal_head_manager/disable", true),
-	head_mgr_disabled_(false)
+	head_mgr_disabled_(false),
+	time_in_point_(1.0),
+	time_head_travel_(2.0)
 {
 	joint_cmd_pub_ = nh_.advertise<trajectory_msgs::JointTrajectory>("/head_controller/command", 100);
 
@@ -127,6 +129,7 @@ AttentionServer::update_points()
 		else
     {
 			ROS_ERROR("Can't transform %s", error.c_str());
+			continue;
 		}
 		tf2::Stamped<tf2::Transform> aux;
 		tf2::convert(p2torso_msg, aux);
@@ -143,6 +146,11 @@ AttentionServer::update_points()
 
 		point.yaw = atan2(point_head_1.y(), point_head_1.x());
 		point.pitch = atan2(point_head_1.z(), point_head_1.x());
+
+		/*ROS_INFO("Point (%lf %lf %lf) (%lf %lf %lf)  =======> (%lf %lf)",
+			point_head_1.x(), point_head_1.y(), point_head_1.z(),
+			point_head_2.x(), point_head_2.y(), point_head_2.z(),
+			point.yaw, point.pitch);*/
 	}
 }
 
@@ -196,7 +204,7 @@ AttentionServer::init_join_state()
   joint_cmd_.points[0].positions.resize(2);
   joint_cmd_.points[0].velocities.resize(2);
   joint_cmd_.points[0].accelerations.resize(2);
-  joint_cmd_.points[0].time_from_start = ros::Duration(TIME_HEAD_TRAVEL);
+  joint_cmd_.points[0].time_from_start = ros::Duration(time_head_travel_);
 
   joint_cmd_.points[0].positions[0] = 0.0;
   joint_cmd_.points[0].positions[1] = 0.0;

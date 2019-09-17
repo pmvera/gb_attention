@@ -59,8 +59,8 @@ namespace gb_attention
 {
 
 
-#define TIME_HEAD_TRAVEL	2.0
-#define TIME_IN_POINT	1.0
+// #define time_head_travel_	2.0
+// #define time_in_point_	1.0
 #define NECK_SPEED	0.1
 #define H_FOV (58.0 * M_PI / 180.0)
 #define V_FOV (45.0 * M_PI / 180.0)
@@ -126,6 +126,9 @@ protected:
 	float current_pitch_;
 	float goal_yaw_;
 	float goal_pitch_;
+
+	float time_in_point_;
+	float time_head_travel_;
 
 	bool head_mgr_disabled_;
 };

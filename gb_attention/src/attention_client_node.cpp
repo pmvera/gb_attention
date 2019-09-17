@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 
   gb_attention::AttentionClient attention_client(class_id);
 
-  ros::Rate rate(1);
+  ros::Rate rate(5);
 
   while (ros::ok())
   {

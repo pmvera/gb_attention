@@ -49,8 +49,12 @@ namespace gb_attention
 
 OptimizedAttentionServer::OptimizedAttentionServer()
 {
-	ts_sent_ = ros::Time::now() - ros::Duration(10.0);
+	ts_sent_ = ros::Time::now() - ros::Duration(5.0);
 	time_in_pos_ = ros::Time::now();
+
+	 nh_.param("time_in_point", time_in_point_, time_in_point_);
+
+
 }
 
 void
@@ -116,11 +120,11 @@ OptimizedAttentionServer::update()
 		point.pitch = atan2(point_head_1.z(), point_head_1.x());
 	}
 
-	if (
-		(ros::Time::now() - ts_sent_).toSec() > 10.0 ||
-		(ros::Time::now() - time_in_pos_).toSec() > (TIME_HEAD_TRAVEL + TIME_IN_POINT))
-  {
 
+	if (
+		(ros::Time::now() - ts_sent_).toSec() > 5.0 ||
+		(ros::Time::now() - time_in_pos_).toSec() > (time_head_travel_ + time_in_point_))
+  {
 		if ((ros::Time::now() - ts_sent_).toSec() > 10)
 			ROS_WARN("Timeout in attention point. Skipping");
 
@@ -132,6 +136,8 @@ OptimizedAttentionServer::update()
 		goal_yaw_ = attention_points_.begin()->yaw;
 		goal_pitch_ = attention_points_.begin()->pitch;
 
+		time_head_travel_ = fabs(current_yaw_ - goal_yaw_) + fabs(current_pitch_ - goal_pitch_);
+		time_head_travel_ = std::max(1.0f, time_head_travel_); // Minumun, 1 second
 
 		joint_cmd_.points[0].positions[0] = goal_yaw_;
 		joint_cmd_.points[0].positions[1] = goal_pitch_;
