@@ -52,8 +52,8 @@ TEST(ClaseTest, methods)
   auto graph_client = std::make_shared<bica_graph::GraphClient>();
 
   graph_client->add_node("leia", "robot");
-  graph_client->add_node("mesa_1", "table");
-  graph_client->add_node("mesa_2", "table");
+  graph_client->add_node("table_1", "table");
+  graph_client->add_node("table_2", "table");
   graph_client->add_node("Paco", "person");
 
   start = ros::Time::now();
@@ -64,14 +64,14 @@ TEST(ClaseTest, methods)
   }
   graph_client->set_tf_identity("base_footprint", "leia");
 
-  graph_client->add_edge("leia", "want_see", "mesa_1");
-  graph_client->add_edge("leia", "want_see", "mesa_2");
+  graph_client->add_edge("leia", "want_see", "table_1");
+  graph_client->add_edge("leia", "want_see", "table_2");
   //graph_client->add_edge("leia", "want_see", "Paco");
 
   tf2::Transform tf_r2t(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(1.20, 0, 0)); 
-  graph_client->add_edge("leia", tf_r2t, "mesa_1", true);
+  graph_client->add_edge("leia", tf_r2t, "table_1", true);
   tf2::Transform tf_r2t2(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(1.2, 1.6, 0));
-  graph_client->add_edge("leia", tf_r2t2, "mesa_2", true);
+  graph_client->add_edge("leia", tf_r2t2, "table_2", true);
   tf2::Transform tf_r2p(tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(-1, 0, 0));
   graph_client->add_edge("leia", tf_r2t, "Paco", true);
 
@@ -82,7 +82,7 @@ TEST(ClaseTest, methods)
     rate.sleep();
   }
 
-  graph_client->remove_edge("leia", "want_see", "mesa_2");
+  graph_client->remove_edge("leia", "want_see", "table_2");
 
   start = ros::Time::now();
   while ((ros::Time::now() - start).toSec() < 15.0 )

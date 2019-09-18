@@ -3,6 +3,7 @@
 
 	<node pkg="gb_attention" type="attention_client_node" name="table_attention_client_node" output="screen">
 		<param name="class_id" value="table" />
+		<param name="time_in_point" type="double" value="0.5" />
 	</node>
 
 	<node pkg="gb_attention" type="attention_client_node" name="zone_attention_client_node" output="screen">
@@ -13,4 +14,9 @@
 		<param name="class_id" value="person" />
 		<param name="time_in_point" type="double" value="0.5" />
 	</node>
+
+  <node pkg="gb_attention" type="attention_client_node" name="robot_attention_client_node" output="screen">
+		<param name="class_id" value="robot" />
+	</node>
+
 </launch>
