@@ -54,8 +54,8 @@ AttentionServer::AttentionServer()
 	current_pitch_(0.0),
 	head_disable_ac_("/pal_head_manager/disable", true),
 	head_mgr_disabled_(false),
-	time_in_point_(1.0),
-	time_head_travel_(2.0)
+	time_in_point_(1.5),
+	time_head_travel_(1.0)
 {
 	joint_cmd_pub_ = nh_.advertise<trajectory_msgs::JointTrajectory>("/head_controller/command", 100);
 
