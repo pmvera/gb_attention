@@ -101,6 +101,8 @@ install:
   - cd ~/catkin_ws/src
   - git clone https://github.com/IntelligentRoboticsLabs/ROSPlan.git
   - git clone https://github.com/IntelligentRoboticsLabs/BICA.git
+  - git clone https://github.com/ahornung/humanoid_msgs.git
+  - git clone -b indigo-devel https://github.com/pal-robotics/pal_msgs
   - ln -s $CI_SOURCE_PATH .
 
 
