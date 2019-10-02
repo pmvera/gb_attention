@@ -5,10 +5,12 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   std_msgs
   geometry_msgs
+  octomap_msgs
 )
 
 add_message_files(
  FILES
+ OctomapPoints.msg
  AttentionPoints.msg
 )
 
@@ -22,6 +24,7 @@ generate_messages(
  DEPENDENCIES
  std_msgs
  geometry_msgs
+ octomap_msgs
 )
 
 catkin_package(
@@ -29,4 +32,5 @@ catkin_package(
   message_runtime
   std_msgs
   geometry_msgs
+  octomap_msgs
 )

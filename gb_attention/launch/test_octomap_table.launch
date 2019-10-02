@@ -1,0 +1,8 @@
+<launch>
+	<node pkg="bica_graph" type="graph_master_node" name="graph_master_node"/>
+	<node pkg="bica_rqt_graph" type="bica_rqt_graph" name="bica_rqt_graph"/>
+	<node pkg="gb_attention" type="attention_server_octomap_node" name="attention_server_octomap_node" output="screen"/>
+	<node pkg="gb_attention" type="table_attention_octomap_client_node" name="table_attention_octomap_client_node" output="screen"/>
+
+	<node pkg="gb_attention" type="test_attention_node" name="test_attention_node" output="screen"/>
+</launch>

@@ -1,0 +1,3 @@
+string class_id
+string instance_id
+octomap_msgs/Octomap attention_points
